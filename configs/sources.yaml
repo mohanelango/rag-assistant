@@ -1,0 +1,20 @@
+web_urls:
+  - https://app.readytensor.ai/publications/0llldKKtn8Xb
+  - https://app.readytensor.ai/publications/WsaE5uxLBqnH
+  - https://app.readytensor.ai/publications/SBgkOyUsP8qQ
+
+wikipedia:
+  - query: Retrieval-Augmented Generation
+    lang: en
+  - query: FAISS
+    lang: en
+  - query: Chroma (database)
+    lang: en
+  - query: LangChain
+    lang: en
+  - query: Machine-readable data
+    lang: en
+
+pdf_files:
+  - "./docs/who_covid_sitrep_51.pdf"
+  - "./docs/nasa_mars_rover.pdf"

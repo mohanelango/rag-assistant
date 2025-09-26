@@ -1,0 +1,12 @@
+.venv/
+venv/
+.idea/
+src/rag/__pycache__/
+__pycache__/
+*.pyc
+.env
+vectorstore/
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep

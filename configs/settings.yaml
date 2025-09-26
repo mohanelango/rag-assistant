@@ -1,0 +1,31 @@
+vectorstore:
+  type: chroma           # options: faiss | chroma
+  persist_dir: ./vectorstore/faiss_index
+  chroma_dir: ./vectorstore/chroma_index
+
+embeddings:
+  model_name: ${EMBEDDING_MODEL:sentence-transformers/all-MiniLM-L6-v2}
+
+chunking:
+  chunk_size: 1000
+  chunk_overlap: 150
+
+retrieval:
+  k: 4
+
+model:
+  # Choose one path depending on env:
+  # - openai      (uses OPENAI_API_KEY)
+  # - ollama      (uses OLLAMA_BASE_URL + OLLAMA_MODEL)
+  # - huggingface (uses HUGGINGFACEHUB_API_TOKEN)
+  provider: openai
+  openai:
+    model: gpt-5   # or gpt-4o, gpt-4.1-mini etc.
+    temperature: 0.2
+  ollama:
+    base_url: ${OLLAMA_BASE_URL:http://localhost:11434}
+    model: ${OLLAMA_MODEL:llama3}
+    temperature: 0.2
+  huggingface:
+    repo_id: mistralai/Mixtral-8x7B-Instruct-v0.1
+    temperature: 0.2
