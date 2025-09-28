@@ -1,5 +1,6 @@
 .venv/
 venv/
+.pytest_cache/
 .idea/
 src/rag/__pycache__/
 __pycache__/

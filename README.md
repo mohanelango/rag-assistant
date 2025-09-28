@@ -1,4 +1,10 @@
 # RAG Assistant (LangChain + Chroma / FAISS)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![LangChain](https://img.shields.io/badge/LangChain-Enabled-orange)
+![Chroma](https://img.shields.io/badge/VectorDB-Chroma-green)
+![FAISS](https://img.shields.io/badge/VectorDB-FAISS-yellow)
+![License: MIT](https://img.shields.io/badge/License-MIT-lightgrey.svg)
+
 
 > **TL;DR Workflow:**  
 > ```
@@ -14,7 +20,28 @@ A production-ready **Retrieval-Augmented Generation (RAG)** system that:
 - Provides both a CLI and REST API interface
 
 ---
+##  Why This Project?
 
+I built this project to explore how production-grade RAG systems are structured.  
+It demonstrates:
+- **Modular architecture** (ingestion pipeline, retrieval layer, generation layer)
+- **LangChain integration** with pluggable vector stores (Chroma, FAISS)
+- **Robustness features** like staleness detection and deterministic ingestion
+- **Deployment-readiness** with CLI, API, and Makefile automation
+
+This project serves as a portfolio piece to showcase my ability to design scalable, maintainable AI/ML systems end-to-end.
+
+---
+## Tech Stack
+
+- **Language:** Python 3.10+
+- **LLM Orchestration:** LangChain
+- **Vector Stores:** Chroma (default), FAISS
+- **Embeddings:** sentence-transformers/all-MiniLM-L6-v2
+- **API:** FastAPI
+- **Testing:** pytest
+- **Automation:** Makefile targets for ingestion, queries, cleaning, testing
+---
 ## 📌 Quickstart
 
 ### 1️⃣ Prerequisites
@@ -29,7 +56,7 @@ A production-ready **Retrieval-Augmented Generation (RAG)** system that:
 
 ### 2️⃣ Setup
 ```bash
-git clone <your-repo-url> rag-assistant
+git clone <https://github.com/mohanelango/rag-assistant.git> rag-assistant
 cd rag-assistant
 python -m venv .venv && source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
@@ -48,17 +75,23 @@ Linux / macOS – Works out-of-the-box if you have GNU Make.
 
 Windows – If make is not available, install it via:
 
-.Scope:
+<details> <summary> Install GNU Make on Windows</summary>
+
+Scoop
 ```
 Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 irm get.scoop.sh | iex
 scoop install make
+
 ```
-.Chocolatey:
+Chocolatey:
 ```
 choco install make
 ```
+
 Or, run the equivalent Python commands directly, as shown below.
+</details>
+
 ### 3️⃣ Ingest Your Corpus
 With Make:
 ```bash
@@ -107,6 +140,8 @@ This prints:
 > 
 > This provides traceability and helps reviewers verify that answers are well-grounded.
 
+Sample CLI Output:
+![CLI Example](docs/screenshots/cli_output.png)
 ---
 
 ### 5️⃣ Serve via API
@@ -124,39 +159,9 @@ curl -X POST http://localhost:8000/ask \
   -H "Content-Type: application/json" \
   -d '{"question":"Explain FAISS vs Chroma differences"}'
 ```
-Example API response:
 
-```json
-{
-    "answer": "Here’s what the provided sources establish about the differences:\n\n- What they are\n  - FAISS: A similarity search/nearest-neighbor technology used as the core search engine inside several vector databases (e.g., OpenSearch, Milvus, Vearch) and widely used in benchmarks and frameworks (Haystack, LangChain) [Wikipedia:FAISS].\n  - Chroma: An open-source vector database tailored to applications with large language models (LLMs) [Wikipedia:Chroma (database)].\n\n- Scope and role in the stack\n  - FAISS: Lower-level search/indexing component; provides algorithms and tools that vector databases can build on [Wikipedia:FAISS].\n  - Chroma: A full vector database product used in LLM/RAG tech stacks [Wikipedia:Chroma (database)].\n\n- Features highlighted\n  - FAISS: Offers k-means clustering, random-matrix rotations, PCA, data deduplication, and a standalone vector codec for lossy compression; serves typical applications like recommender systems, data mining, text retrieval, and content moderation; has demonstrated extreme scale (indexing 1.5 trillion 144-d vectors in internal Meta applications) [Wikipedia:FAISS].\n  - Chroma: Positioned for LLM-focused workloads and used in academic RAG studies; organizational details include HQ in San Francisco and a $18M seed round in April 2023 [Wikipedia:Chroma (database)].\n\n- Ecosystem and usage\n  - FAISS: Considered a baseline in similarity search benchmarks; integrated with Haystack and LangChain; used underneath other vector databases [Wikipedia:FAISS].\n  - Chroma: Used directly as a vector database within RAG stacks [Wikipedia:Chroma (database)].\n\nWhat’s missing to make the comparison complete\n- No details here on Chroma’s specific features (index types, compression, deduplication, clustering), performance, scale limits, or query capabilities.\n- No direct head-to-head performance or feature benchmarks between FAISS and Chroma.\n- No deployment, persistence, or API details for either beyond the high-level roles.\n  \nSources:\n- Wikipedia:FAISS\n- Wikipedia:Chroma (database)",
-    "sources": [
-        {
-            "source": "Wikipedia:Chroma (database)",
-            "type": "wikipedia",
-            "name": null,
-            "title": "Chroma (vector database)",
-            "page": null,
-            "score": 1.3143
-        },
-        {
-            "source": "Wikipedia:FAISS",
-            "type": "wikipedia",
-            "name": null,
-            "title": "FAISS",
-            "page": null,
-            "score": 1.3655
-        },
-        {
-            "source": "https://app.readytensor.ai/publications/WsaE5uxLBqnH",
-            "type": "url",
-            "name": null,
-            "title": "Technical Excellence in AI/ML Publications: An Evaluation Rubric by Ready Tensor",
-            "page": null,
-            "score": 1.5636
-        }
-    ]
-}
-```
+Sample API Output:
+![CLI Example](docs/screenshots/api_output.png)
 ---
 ### 6️⃣ Clean Vector Store (Optional)
 
@@ -166,21 +171,35 @@ With Make:
 ```bash
 make clean
 ```
-Without Make:
+Clean a custom vectorstore (if you used VECTORSTORE_DIR):
+```bash
+make clean VECTORSTORE_DIR=./vectorstore/test_index
 ```
+Without Make:
+```bash
 rm -rf vectorstore/chroma_index vectorstore/faiss_index
 ```
 Tip: Always run make clean && make ingest after you modify configs/sources.yaml or change chunking/embedding settings.
 This ensures you don't mix old and new embeddings in the same vector store.
 
-### ✅ Why This is Important
+### Why This is Important
 
 - **Avoids stale embeddings** when sources, chunk size, or embedding model are changed  
 - **Prevents index corruption** if you switch from FAISS ↔ Chroma  
 - **Makes ingestion deterministic** — ensures results match new settings exactly  
 
 ---
-🔄 Overriding Config Files
+### Testing
+Run the test suite to validate ingestion, retrieval, and API endpoints:
+```bash
+make test
+```
+Run tests against a custom vectorstore directory (recommended for CI isolation):
+```bash
+make test VECTORSTORE_DIR=./vectorstore/test_index
+```
+---
+Overriding Config Files
 
 You can switch to alternate configs (e.g., settings.prod.yaml, sources.alt.yaml) without changing code:
 ```
@@ -248,6 +267,10 @@ end
 F --> R
 ```
 
-For a deeper explanation, see [`docs/architecture.md`](docs/architecture.md).
+For a deeper explanation, see [`docs/architecture.md`](docs/architecture.md)
 
+---
+##  License
+
+Distributed under the [MIT License](LICENSE).
 
