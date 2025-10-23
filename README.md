@@ -1,4 +1,4 @@
-# RAG Assistant: A Modular Retrieval-Augmented Generation Framework
+# RAG Assistant: A Modular Framework for Building and Evaluating Retrieval-Augmented Generation Systems
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![LangChain](https://img.shields.io/badge/LangChain-Enabled-orange)
 ![Chroma](https://img.shields.io/badge/VectorDB-Chroma-green)
