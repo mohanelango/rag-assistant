@@ -1,35 +1,44 @@
-# RAG Assistant (LangChain + Chroma / FAISS)
+# RAG Assistant: A Modular Retrieval-Augmented Generation Framework
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![LangChain](https://img.shields.io/badge/LangChain-Enabled-orange)
 ![Chroma](https://img.shields.io/badge/VectorDB-Chroma-green)
 ![FAISS](https://img.shields.io/badge/VectorDB-FAISS-yellow)
 ![License: MIT](https://img.shields.io/badge/License-MIT-lightgrey.svg)
+![RAG](https://img.shields.io/badge/Tag-RAG-blueviolet)
+![LangChain](https://img.shields.io/badge/Framework-LangChain-orange)
+![LLM](https://img.shields.io/badge/Model-LLM-red)
+![QueryProcessing](https://img.shields.io/badge/Feature-Query_Processing-teal)
+![Evaluation](https://img.shields.io/badge/Module-Evaluation-green)
+![OpenAI](https://img.shields.io/badge/Provider-OpenAI-blue)
+![Ollama](https://img.shields.io/badge/Provider-Ollama-lightgrey)
+![AIEngineering](https://img.shields.io/badge/Discipline-AI_Engineering-purple)
 
 
 > **TL;DR Workflow:**  
 > ```
->  [User Query] → [Retriever: Chroma] → [Context + Prompt] → [LLM] → [Answer + Sources]
+> [User Query] → [Query Processing] → [Retriever: Chroma/FAISS] → [Context + Prompt] → [LLM] → [Answer + Sources]
 > ```
-> Minimal, production-ready RAG pipeline using Chroma + LangChain.
+> Production-ready RAG pipeline using LangChain, Chroma/FAISS, and modular preprocessing.
 
 A production-ready **Retrieval-Augmented Generation (RAG)** system that:
 
-- Uses **Chroma** as the default vector store (persistent and easy to inspect)
-- Embeds and indexes a corpus (Web urls + Wikipedia topics + PDFs)
-- Exposes a functional **LangChain** pipeline: User Question → Retrieval (Chroma) → Prompt Construction (Context + Question) → LLM Response
-- Provides both a CLI and REST API interface
+- Uses **Chroma** (default) or **FAISS** for efficient vector search  
+- Embeds and indexes a corpus (Web URLs + Wikipedia + PDFs)  
+- Exposes a complete **LangChain** pipeline:  
+  `User Question → Query Processing → Retrieval → Prompt Construction → LLM Response`  
+- Provides both **CLI** and **FastAPI REST** interfaces
+
 
 ---
 ##  Why This Project?
 
 I built this project to explore how production-grade RAG systems are structured.  
 It demonstrates:
-- **Modular architecture** (ingestion pipeline, retrieval layer, generation layer)
+- **Modular architecture** (ingestion, retrieval, generation layers)
 - **LangChain integration** with pluggable vector stores (Chroma, FAISS)
-- **Robustness features** like staleness detection and deterministic ingestion
-- **Deployment-readiness** with CLI, API, and Makefile automation
-
-This project serves as a portfolio piece to showcase my ability to design scalable, maintainable AI/ML systems end-to-end.
+- **Advanced features** like query preprocessing and retrieval evaluation
+- **Robustness** via staleness detection and deterministic ingestion
+- **Deployment readiness** through Makefile automation and CI-friendly structure
 
 ---
 ## Tech Stack
@@ -40,8 +49,28 @@ This project serves as a portfolio piece to showcase my ability to design scalab
 - **Embeddings:** sentence-transformers/all-MiniLM-L6-v2
 - **API:** FastAPI
 - **Testing:** pytest
-- **Automation:** Makefile targets for ingestion, queries, cleaning, testing
+- **Automation:** Makefile targets for ingestion, queries, cleaning, evaluation and testing
 ---
+## Model Choice Rationale
+| Component      | Default                                  | Reason                                                                        |
+| -------------- | ---------------------------------------- | ----------------------------------------------------------------------------- |
+| **Embeddings** | `sentence-transformers/all-MiniLM-L6-v2` | Lightweight (22 MB), fast inference ≈ 80% of BERT’s accuracy at 1/10 the cost |
+| **LLM**        | Configurable (OpenAI / Ollama / HF)      | Modular design → can swap in local models for privacy or cost control         |
+| **Vector DB**  | Chroma                                   | Open-source, persistent, and Python-native                                    |
+
+```markdown
+RAG Assistant supports multiple model providers to ensure both accessibility and flexibility:
+
+| Provider | Why Chosen | Best For |
+|-----------|-------------|----------|
+| **OpenAI** | High-quality, consistent completions and reasoning accuracy | Cloud inference with GPT-5 |
+| **Ollama** | Enables offline, privacy-preserving execution of models like LLaMA-3 | Local development and demos |
+| **HuggingFace Inference API** | Supports open-source LLMs with flexible configuration | Custom model evaluation and experimentation |
+
+Each model provider can be toggled in `configs/settings.yaml`.  
+This modularity allows side-by-side testing and benchmarking across architectures.
+
+```
 ## 📌 Quickstart
 
 ### 1️⃣ Prerequisites
@@ -55,6 +84,7 @@ This project serves as a portfolio piece to showcase my ability to design scalab
 ---
 
 ### 2️⃣ Setup
+#### Linux / macOS / Windows (PowerShell)
 ```bash
 git clone <https://github.com/mohanelango/rag-assistant.git> rag-assistant
 cd rag-assistant
@@ -116,8 +146,41 @@ the CLI and API will detect that your sources are newer than the last index buil
 Run `make clean && make ingest` to update your index before querying.
 
 ---
+### 4️⃣ Query Processing
 
-### 4️⃣ Query the System (CLI):
+Before every query, the system preprocesses the user input for cleaner, more accurate retrieval.
+
+Features
+
+Normalization: Removes punctuation and redundant spaces
+
+Classification: Detects query type (factual, conceptual, procedural)
+
+Keyword Extraction: Identifies core retrieval terms
+
+Optional Expansion: Uses your configured LLM (OpenAI / Ollama / HF) to paraphrase queries for better semantic match
+
+Example
+```
+make ask Q="Explain how RAG improves LLM accuracy"
+```
+Output Includes
+```
+=== QUERY METADATA ===
+{
+  "type": "conceptual",
+  "cleaned": "explain how rag improves llm accuracy",
+  "expanded": "explain how retrieval-augmented generation improves accuracy and factual grounding in large language models",
+  "keywords": ["explain", "rag", "improves", "llm", "accuracy"]
+}
+```
+To enable query expansion in configs/settings.yaml:
+```yaml
+query:
+  expand: true
+```
+---
+### 5️⃣ Query the System (CLI):
 With Make:
 ```bash
 make ask Q="What is Retrieval-Augmented Generation and why is it useful?"
@@ -144,7 +207,7 @@ Sample CLI Output:
 ![CLI Example](docs/screenshots/cli_output.png)
 ---
 
-### 5️⃣ Serve via API
+### 6️⃣ Serve via API
 With Make:
 ```bash
 make serve
@@ -162,8 +225,59 @@ curl -X POST http://localhost:8000/ask \
 
 Sample API Output:
 ![CLI Example](docs/screenshots/api_output.png)
+
+### 7️⃣ Retrieval Evaluation
+
+To measure how well your retriever fetches relevant context, RAG Assistant includes a **Retrieval Evaluation** module.
+
+### What It Does
+- Computes **Precision@K**, **Recall@K**, and **Mean Reciprocal Rank (MRR)**.  
+- Compares the retriever’s results against a known set of *relevant documents*.  
+- Helps you assess how accurately your embeddings and chunking strategy are working.
+
+### How to Use
+
+1. Create an evaluation dataset at `data/eval_questions.json`:
+   ```json
+   [
+     {
+       "question": "What is Retrieval-Augmented Generation?",
+       "relevant_docs": ["Wikipedia:Retrieval-Augmented Generation"]
+     },
+     {
+       "question": "Who wrote Federalist Paper No. 10?",
+       "relevant_docs": ["./docs/federalist_papers.pdf"]
+     }
+   ]
+2. Run evaluation:
+
+    With Make:
+    ```bash
+      make evaluate
+    ```
+    Without Make (Windows fallback):
+    ```
+    python -m src.rag.evaluate --settings configs/settings.yaml --evalset data/eval_questions.json
+    ```
+3. Example Output:
+    ```makefile
+    Precision@5: 0.80
+    Recall@5: 0.75
+    MRR: 0.67
+    ```
+Why It Matters:
+
+Retrieval evaluation helps verify whether your vector store and embeddings retrieve the right context chunks.
+You can experiment with:
+
+Different embedding models
+
+Chunk sizes / overlap
+
+Retrieval k settings and compare metrics quantitatively.
+
 ---
-### 6️⃣ Clean Vector Store (Optional)
+### 8️⃣ Clean Vector Store (Optional)
 
 If you want to reset and rebuild your index (e.g., after changing chunk size, sources, or embeddings):
 
@@ -189,7 +303,7 @@ This ensures you don't mix old and new embeddings in the same vector store.
 - **Makes ingestion deterministic** — ensures results match new settings exactly  
 
 ---
-### Testing
+### 9️⃣Testing
 Run the test suite to validate ingestion, retrieval, and API endpoints:
 ```bash
 make test
@@ -199,7 +313,9 @@ Run tests against a custom vectorstore directory (recommended for CI isolation):
 make test VECTORSTORE_DIR=./vectorstore/test_index
 ```
 ---
-Overriding Config Files
+
+---
+### Overriding Config Files
 
 You can switch to alternate configs (e.g., settings.prod.yaml, sources.alt.yaml) without changing code:
 ```
@@ -219,53 +335,35 @@ python -m src.rag.cli --question "What is RAG?" --settings configs/settings.prod
 User Question
    │
    ▼
-Retriever (Chroma DB)
+Query Processing (cleaning, classification, expansion)
+   │
+   ▼
+Retriever (Chroma / FAISS)
    │
    ▼
 Context + Question → Prompt Template
    │
    ▼
-LLM (OpenAI / Ollama / HF)
+LLM (OpenAI / Ollama / HuggingFace)
    │
    ▼
-Generated Answer + Source List
+Answer + Source List
+
 
 This ASCII diagram is a high-level view of the full RAG flow.
 For a detailed view, see [docs/architecture.md](docs/architecture.md)
 ___
 ## ⚙️ Configs
 
-- `configs/settings.yaml` — retrieval settings, embedding model, Chroma persist directory  
+- `configs/settings.yaml` — embedding model, retrieval k, vectorstore path, query expansion  
 - `configs/sources.yaml` — URLs (Ready Tensor guides), Wikipedia topics, PDFs
 
 ---
 
 ## Architecture Overview
 
-```mermaid
-flowchart TD
-
-subgraph Ingestion["Ingestion Pipeline"]
-    A[Sources: Ready Tensor Guides + Wikipedia + PDFs] --> B[Loaders: URL + WikipediaLoader + PDFs]
-    B --> C[Clean & Normalize Text]
-    C --> D[Chunking: RecursiveCharacterTextSplitter]
-    D --> E[Embeddings: sentence-transformers/all-MiniLM-L6-v2]
-    E --> F[Vector Store: Chroma Persisted DB]
-end
-
-subgraph Retrieval["Query-Time Retrieval"]
-    Q[User Query] --> R[Retriever (Chroma)]
-    R --> CONTEXT[Retrieved Chunks]
-end
-
-subgraph Generation["Answer Generation"]
-    CONTEXT --> PROMPT[Prompt Template (System + Context)]
-    PROMPT --> LLM[LLM: OpenAI / Ollama / HF]
-    LLM --> ANSWER[Generated Response + Sources]
-end
-
-F --> R
-```
+![CLI Example](docs/screenshots/architecture.png)
+> This high-level diagram illustrates how a user query moves through preprocessing, retrieval, and generation layers before producing an answer.
 
 For a deeper explanation, see [`docs/architecture.md`](docs/architecture.md)
 

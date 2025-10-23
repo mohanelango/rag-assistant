@@ -1,0 +1,22 @@
+[
+  {
+    "question": "What is Retrieval-Augmented Generation?",
+    "relevant_docs": ["Wikipedia:Retrieval-Augmented Generation"]
+  },
+  {
+    "question": "Who wrote Federalist Paper No. 10?",
+    "relevant_docs": ["./docs/federalist_papers.pdf"]
+  },
+  {
+    "question": "What is the mission objective of NASA's Perseverance rover?",
+    "relevant_docs": ["./docs/nasa_mars_rover.pdf"]
+  },
+  {
+    "question": "What are the best practices for publishing on Ready Tensor?",
+    "relevant_docs": ["https://app.readytensor.ai/publications/SBgkOyUsP8qQ"]
+  },
+  {
+    "question": "What are the technical excellence criteria in AI/ML publications?",
+    "relevant_docs": ["https://app.readytensor.ai/publications/WsaE5uxLBqnH"]
+  }
+]

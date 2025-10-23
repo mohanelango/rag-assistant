@@ -49,3 +49,8 @@ clean:
 	else \
 		rm -rf vectorstore/chroma_index vectorstore/faiss_index; \
 	fi
+
+## Retrieval Evaluation ---
+
+evaluate:
+	python -m src.rag.evaluate --settings configs/settings.yaml --evalset data/eval_questions.json

@@ -11,6 +11,8 @@ import argparse
 import json
 from pathlib import Path
 from langchain_huggingface import HuggingFaceEmbeddings
+
+from src.rag.query_processing import process_query
 from .utils import load_yaml, get_unique_sources
 from .chain import build_rag_chain
 from src.logging_config import get_logger
@@ -69,15 +71,23 @@ def main(question: str, settings_path: str = DEFAULT_SETTINGS_PATH, sources_path
     logger.info("Building RAG chain and retriever...")
     chain, retriever = build_rag_chain(settings, embeddings)
 
-    # Run RAG pipeline
-    logger.info(f"Invoking chain with question: {question}")
-    result = chain.invoke({"question": question})
+    # --- Query Preprocessing ---
+    logger.info("Preprocessing user query...")
+    expand = settings.get("query", {}).get("expand", False)
+    qp = process_query(question, settings, expand=expand)
+
+    logger.info(f"Query type: {qp['type']} | Cleaned: {qp['cleaned']} | Keywords: {qp['keywords']}")
+    processed_question = qp["expanded"]
+
+    # --- Run RAG Pipeline ---
+    logger.info(f"Invoking chain with processed query: {processed_question}")
+    result = chain.invoke({"question": processed_question})
     answer_text = getattr(result, "content", str(result))
     logger.debug(f"LLM answer generated (length: {len(answer_text)} characters)")
 
     # Retrieve docs with similarity scores
     docs_and_scores = retriever.vectorstore.similarity_search_with_score(
-        question, k=settings["retrieval"]["k"]
+        processed_question, k=settings["retrieval"]["k"]
     )
     logger.info(f"Retrieved {len(docs_and_scores)} document chunks for context")
 

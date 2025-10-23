@@ -58,6 +58,7 @@ def load_from_wikipedia(items: List[Dict[str, Any]]) -> List[Document]:
                 d.metadata["type"] = "wikipedia"
             logger.info(f"Loaded {len(page_docs)} docs from Wikipedia query: {query}")
             docs.extend(page_docs)
+
         except Exception as e:
             logger.error(f"Failed to load Wikipedia article '{query}': {e}")
     logger.info(f"Total Wikipedia docs loaded: {len(docs)}")

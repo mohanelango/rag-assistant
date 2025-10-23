@@ -8,6 +8,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from .utils import load_yaml, get_unique_sources, warn_if_stale
 from .chain import build_rag_chain
 from src.logging_config import get_logger
+from .query_processing import process_query
 
 logger = get_logger(__name__)
 
@@ -51,18 +52,39 @@ def ask(req: AskRequest):
     """
     logger.info(f"Received API question: {req.question}")
     try:
-        res = CHAIN.invoke({"question": req.question})
+        # --- Query Preprocessing ---
+        logger.info("Preprocessing user query...")
+        expand = SETTINGS.get("query", {}).get("expand", False)
+        qp = process_query(req.question, SETTINGS, expand=expand)
+        processed_question = qp["expanded"]
+        logger.info(f"Query type: {qp['type']} | Cleaned: {qp['cleaned']} | Keywords: {qp['keywords']}")
+
+        # --- Run RAG Pipeline ---
+        logger.info(f"Invoking chain with processed query: {processed_question}")
+        res = CHAIN.invoke({"question": processed_question})
         answer = getattr(res, "content", str(res))
         logger.debug("LLM response generated successfully")
 
+        # --- Retrieve Docs ---
         docs_and_scores = RETRIEVER.vectorstore.similarity_search_with_score(
-            req.question, k=SETTINGS["retrieval"]["k"]
+            processed_question, k=SETTINGS["retrieval"]["k"]
         )
         logger.debug(f"Retrieved {len(docs_and_scores)} documents from vectorstore")
 
+        # --- Deduplicate Sources ---
         unique_sources = get_unique_sources(docs_and_scores)
         logger.info(f"Returning answer with {len(unique_sources)} unique sources")
-        return {"answer": answer, "sources": unique_sources}
+
+        return {
+            "query_metadata": qp,
+            "answer": answer.strip(),
+            "sources": unique_sources
+        }
+
+    except Exception as e:
+        logger.exception("Error while processing API request")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
 
     except Exception as e:
         logger.exception("Error while processing API request")
