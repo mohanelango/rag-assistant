@@ -233,8 +233,7 @@ curl -X POST "http://localhost:8000/ask?debug=true" \
 
 ### High-Level System Diagram
 
-```
-mermaid
+```mermaid
 
 flowchart TD
 
