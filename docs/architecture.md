@@ -234,37 +234,50 @@ curl -X POST "http://localhost:8000/ask?debug=true" \
 ### High-Level System Diagram
 
 ```mermaid
-
 flowchart TD
 
-subgraph Ingestion["Ingestion Pipeline"]
-    A[Sources: Web URLs + Wikipedia + PDFs] --> B[Cleaning & Normalization]
-    B --> C[Chunking (1000/150)]
-    C --> D[Embeddings: Sentence Transformers]
-    D --> E[Vector Store: Chroma / FAISS]
+%% ======================
+%% Ingestion Pipeline
+%% ======================
+subgraph A["Ingestion Pipeline"]
+    A1[📄 Sources: Web URLs + Wikipedia + PDFs] --> A2[🧹 Cleaning & Normalization]
+    A2 --> A3[✂️ Chunking (1000 chars / 150 overlap)]
+    A3 --> A4[🔢 Embeddings: Sentence Transformers]
+    A4 --> A5[💾 Vector Store: Chroma / FAISS]
 end
 
-subgraph QueryProcessing["Query Processing Layer"]
-    Q[User Query] --> Q1[Normalization + Classification]
-    Q1 --> Q2[Keyword Extraction + Expansion]
+%% ======================
+%% Query Processing
+%% ======================
+subgraph B["Query Processing Layer"]
+    B1[💬 User Query] --> B2[🧠 Normalization + Classification]
+    B2 --> B3[🗝️ Keyword Extraction + Expansion]
 end
 
-subgraph Retrieval["Retrieval Layer"]
-    Q2 --> R[Retriever (Vector Search)]
-    R --> CONTEXT[Relevant Chunks]
+%% ======================
+%% Retrieval
+%% ======================
+subgraph C["Retrieval Layer"]
+    B3 --> C1[🔍 Retriever (Vector Search)]
+    C1 --> C2[📚 Relevant Chunks]
 end
 
-subgraph Generation["Answer Generation"]
-    CONTEXT --> P[Prompt Construction]
-    P --> LLM[LLM (OpenAI / Ollama / HF)]
-    LLM --> ANS[Answer + Sources]
+%% ======================
+%% Generation
+%% ======================
+subgraph D["Answer Generation"]
+    C2 --> D1[🧩 Prompt Construction]
+    D1 --> D2[🤖 LLM (OpenAI / Ollama / HF)]
+    D2 --> D3[📝 Answer + Sources]
 end
 
-subgraph Evaluation["Retrieval Evaluation"]
-    ANS --> METRICS[Precision@K, Recall@K, MRR]
+%% ======================
+%% Evaluation
+%% ======================
+subgraph E["Retrieval Evaluation"]
+    D3 --> E1[📈 Precision@K, Recall@K, MRR]
 end
 
-F --> R
 ```
 ---
 
