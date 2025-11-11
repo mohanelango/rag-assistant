@@ -235,48 +235,19 @@ curl -X POST "http://localhost:8000/ask?debug=true" \
 
 ```mermaid
 flowchart TD
+    A["Sources<br/>Web URLs, Wikipedia, PDFs"] --> B["Cleaning and Normalization"]
+    B --> C["Chunking<br/>1000 characters, 150 overlap"]
+    C --> D["Embeddings<br/>Sentence Transformers"]
+    D --> E["Vector Store<br/>Chroma or FAISS"]
 
-%% ======================
-%% Ingestion Pipeline
-%% ======================
-subgraph A["Ingestion Pipeline"]
-    A1[📄 Sources: Web URLs + Wikipedia + PDFs] --> A2[🧹 Cleaning & Normalization]
-    A2 --> A3[✂️ Chunking (1000 chars / 150 overlap)]
-    A3 --> A4[🔢 Embeddings: Sentence Transformers]
-    A4 --> A5[💾 Vector Store: Chroma / FAISS]
-end
-
-%% ======================
-%% Query Processing
-%% ======================
-subgraph B["Query Processing Layer"]
-    B1[💬 User Query] --> B2[🧠 Normalization + Classification]
-    B2 --> B3[🗝️ Keyword Extraction + Expansion]
-end
-
-%% ======================
-%% Retrieval
-%% ======================
-subgraph C["Retrieval Layer"]
-    B3 --> C1[🔍 Retriever (Vector Search)]
-    C1 --> C2[📚 Relevant Chunks]
-end
-
-%% ======================
-%% Generation
-%% ======================
-subgraph D["Answer Generation"]
-    C2 --> D1[🧩 Prompt Construction]
-    D1 --> D2[🤖 LLM (OpenAI / Ollama / HF)]
-    D2 --> D3[📝 Answer + Sources]
-end
-
-%% ======================
-%% Evaluation
-%% ======================
-subgraph E["Retrieval Evaluation"]
-    D3 --> E1[📈 Precision@K, Recall@K, MRR]
-end
+    E --> F["User Query"]
+    F --> G["Query Processing<br/>Normalization, Classification, Expansion"]
+    G --> H["Retriever<br/>Vector Search"]
+    H --> I["Relevant Chunks<br/>Retrieved Context"]
+    I --> J["Prompt Construction<br/>Context + Question"]
+    J --> K["LLM<br/>OpenAI, Ollama, HuggingFace"]
+    K --> L["Generated Answer<br/>with Source Citations"]
+    L --> M["Evaluation<br/>Precision@K, Recall@K, MRR"]
 
 ```
 ---
